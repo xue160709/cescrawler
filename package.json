@@ -1,0 +1,13 @@
+{
+  "name": "ces-awards-scraper",
+  "version": "1.0.0",
+  "dependencies": {
+    "@types/node": "^20.17.12",
+    "playwright": "^1.49.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "scripts": {
+    "start": "ts-node --esm ces_scraper.ts"
+  }
+}
