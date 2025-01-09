@@ -69,7 +69,6 @@ async function extractProductData(page: any): Promise<ProductDetail> {
 }
 
 async function scrapeProductDetails() {
-  // 读取awards数据
   const awardsData = JSON.parse(fs.readFileSync('ces_awards_2025.json', 'utf8'));
   const urls = awardsData.map((item: any) => item.url);
 
@@ -81,36 +80,49 @@ async function scrapeProductDetails() {
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
   });
 
-  const page = await context.newPage();
   const products: ProductDetail[] = [];
-
+  const CONCURRENT_PAGES = 10; // 并发数量
+  
   try {
-    for (let i = 0; i < urls.length; i++) {
-      const url = urls[i];
-      console.log(`正在爬取第 ${i + 1}/${urls.length} 个产品: ${url}`);
+    // 将URL列表分成多个批次
+    for (let i = 0; i < urls.length; i += CONCURRENT_PAGES) {
+      const urlBatch = urls.slice(i, i + CONCURRENT_PAGES);
+      console.log(`正在处理第 ${i + 1} 到 ${i + urlBatch.length} 个产品`);
 
-      try {
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
-        await page.waitForSelector('h1.outline-none.mt-24.f-display-3.text-secondary', { timeout: 10000 });
+      const pageTasks = await Promise.all(
+        urlBatch.map(async (url: string) => {
+          const page = await context.newPage();
+          try {
+            await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+            await page.waitForSelector('h1.outline-none.mt-24.f-display-3.text-secondary', { timeout: 10000 });
+            
+            const productData = await extractProductData(page);
+            await page.close();
+            return { success: true, data: productData };
+          } catch (error) {
+            console.error(`爬取产品失败: ${url}`, error);
+            fs.appendFileSync('failed_urls.txt', url + '\n');
+            await page.close();
+            return { success: false, url };
+          }
+        })
+      );
 
-        const productData = await extractProductData(page);
-        products.push(productData);
+      // 处理每批次的结果
+      const successfulProducts = pageTasks
+        .filter((result): result is { success: true; data: ProductDetail } => 
+          result.success && 'data' in result
+        )
+        .map(result => result.data);
+      
+      products.push(...successfulProducts);
 
-        // 每爬取10个产品保存一次,避免数据丢失
-        if (products.length % 10 === 0) {
-          fs.writeFileSync('ces_products_partial.json', JSON.stringify(products, null, 2));
-          console.log(`已保存${products.length}个产品数据到临时文件`);
-        }
+      // 每批次完成后保存数据
+      fs.writeFileSync('ces_products_partial.json', JSON.stringify(products, null, 2));
+      console.log(`已保存${products.length}个产品数据到临时文件`);
 
-        // 随机延迟1-3秒
-        await page.waitForTimeout(1000 + Math.random() * 2000);
-
-      } catch (error) {
-        console.error(`爬取产品失败: ${url}`, error);
-        // 记录失败的URL
-        fs.appendFileSync('failed_urls.txt', url + '\n');
-        continue;
-      }
+      // 添加短暂延迟，避免请求过于密集
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
 
     // 保存所有数据
