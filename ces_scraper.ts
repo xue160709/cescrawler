@@ -69,10 +69,7 @@ async function scrapeCESAwards() {
     });
     
     // 获取总页数
-    const totalPages = await page.evaluate(() => {
-      const pageNumbers = document.querySelectorAll('.pagination li');
-      return parseInt(pageNumbers[pageNumbers.length - 2]?.textContent || '1');
-    });
+    const totalPages = 29
     
     console.log(`总页数: ${totalPages}`);
     
