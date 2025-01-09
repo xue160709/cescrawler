@@ -84,7 +84,7 @@ async function scrapeCESAwards() {
         await page.goto(`https://www.ces.tech/ces-innovation-awards/?page=${currentPage}`, {
           waitUntil: 'networkidle'
         });
-        await page.waitForSelector('.grid li');
+        await page.waitForSelector('div.container');
       }
       
       // 提取当前页面的奖项信息
