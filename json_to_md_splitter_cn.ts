@@ -101,7 +101,6 @@ async function createMarkdownContent(product: Product): Promise<string> {
 - 类别: ${product.categories.join(', ')}
 - 链接: ${product.url}
 
-## 图片
 ![${product.image.alt || product.name}](${product.image.src})
 
 ${translatedDescription ? `## 描述

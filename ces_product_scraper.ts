@@ -59,9 +59,9 @@ async function extractProductData(page: any): Promise<ProductDetail> {
     }
 
     // 获取产品描述
-    const description = document.querySelector('div.rich-text p')?.textContent;
+    const description = document.querySelector('div.rich-text')?.textContent?.trim();
     if(description) {
-      product.description = description.split('10kM 是')[0].trim();
+      product.description = description;
     }
 
     return product;
@@ -81,7 +81,7 @@ async function scrapeProductDetails() {
   });
 
   const products: ProductDetail[] = [];
-  const CONCURRENT_PAGES = 10; // 并发数量
+  const CONCURRENT_PAGES = 20; // 并发数量
   
   try {
     // 将URL列表分成多个批次

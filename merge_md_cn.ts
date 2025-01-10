@@ -19,9 +19,6 @@ async function mergeMdFiles() {
                 'utf-8'
             );
             
-            // 只移除"## 图片"这一行
-            content = content.replace(/## 图片\n/g, '');
-            
             // 添加文件内容和额外的换行
             mergedContent += content + '\n\n---\n\n';
         }

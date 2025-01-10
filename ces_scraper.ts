@@ -19,8 +19,7 @@ async function extractPageData(): Promise<AwardItem[]> {
     const href = link.getAttribute('href') || '';
     const title = link.getAttribute('aria-label') || '';
     
-    // 只获取2025年的奖项链接
-    if (!href.includes('/ces-innovation-awards/2025/')) {
+    if (!href.includes('/ces-innovation-awards/')) {
       return null;
     }
     
@@ -58,7 +57,7 @@ async function scrapeCESAwards() {
     await page.setDefaultTimeout(30000);
     
     console.log('正在访问页面...');
-    await page.goto('https://www.ces.tech/ces-innovation-awards/?page=1', {
+    await page.goto('https://www.ces.tech/ces-innovation-awards/2024/?year=2023&type=Best+of+Innovation', {
       waitUntil: 'networkidle'
     });
     
@@ -69,7 +68,7 @@ async function scrapeCESAwards() {
     });
     
     // 获取总页数
-    const totalPages = 29
+    const totalPages = 2
     
     console.log(`总页数: ${totalPages}`);
     
@@ -78,7 +77,7 @@ async function scrapeCESAwards() {
       console.log(`正在爬取第 ${currentPage} 页`);
       
       if (currentPage > 1) {
-        await page.goto(`https://www.ces.tech/ces-innovation-awards/?page=${currentPage}`, {
+        await page.goto(`https://www.ces.tech/ces-innovation-awards/2024/?year=2023&type=Best+of+Innovation&page=${currentPage}`, {
           waitUntil: 'networkidle'
         });
         await page.waitForSelector('div.container');
